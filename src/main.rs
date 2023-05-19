@@ -2,16 +2,30 @@ use rand::Rng;
 use std::io;
 use std::io::Write;
 
+const MODES: [&str; 1] = ["1"];
+
 fn main() {
     println!("Welcome to alphabetter!");
-    println!("Use ^c to quit.");
+    println!("Use ^c to quit at any time.");
+    println!("Choose your mode.");
+    println!("(1) Number to Letter");
+    let mut input = String::new();
+    let input_instruction = "Input the number of a mode.";
+    loop {
+        request_input(">", &mut input);
+        match parse_input(&input, &MODES) {
+            Ok(_) => break,
+            Err(e) => match e {
+                ParseError::ToManyInputs => println!("To Many Inputs; {input_instruction}"),
+                ParseError::NotInLanguage => println!("Invalid Input; {input_instruction}"),
+            },
+        }
+    }
     println!("Type the letter corresponding to the given number.");
-
     let input_instruction = "Input a single lowercase letter.";
     loop {
         let number = rand::thread_rng().gen_range(1..=26);
         println!("---{number}---");
-        let mut input;
         loop {
             print!(">");
             io::stdout().flush().expect("Error printing");
@@ -61,4 +75,11 @@ fn parse_input(input: &str, base: &[&str]) -> Result<usize, ParseError> {
     base.iter()
         .position(|&s| s == input)
         .ok_or(ParseError::NotInLanguage)
+}
+
+fn request_input(prompt: &str, input: &mut String) {
+    print!("{prompt}");
+    io::stdout().flush().expect("Error printing");
+    *input = String::new();
+    io::stdin().read_line(input).expect("Error reading input");
 }
